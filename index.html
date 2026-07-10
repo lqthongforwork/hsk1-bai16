@@ -1289,6 +1289,7 @@ function quizCheckEnd(){
   $("#qzProg").textContent = `${quizDone}/${QUIZ.length}`;
   if(quizDone < QUIZ.length) return;
   const pct = Math.round(quizScore/QUIZ.length*100);
+  if (window.LMS) LMS.score("quiz-cuoi-bai", quizScore, QUIZ.length);   // ← Learning Hub tracking
   const msg = pct>=90 ? "🏆 Xuất sắc! Bạn đã nắm vững bài 下班以后!"
     : pct>=70 ? "🎉 Rất tốt! Xem lại vài câu sai là hoàn hảo."
     : pct>=50 ? "👍 Khá ổn! Hãy ôn lại Phần 2 (Từ vựng) và Phần 5 (Bài đọc) nhé."
@@ -1307,7 +1308,23 @@ buildNav();
 fcShow();
 go(0);
 </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- ============ Thong's Learning Hub tracking ============ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://lqthongforwork.github.io/learninghub/tracker.js"></script>
+<script>
+  // This lesson shows sections through its own step navigation (go),
+  // so we report each visited section from there instead of using
+  // scroll detection. Time tracking is automatic from tracker.js.
+  (function () {
+    if (!window.LMS) return;
+    const label = i =>
+      (typeof SECTIONS !== "undefined" && SECTIONS[i]) ? SECTIONS[i] : "Phần " + (i + 1);
+    const goOriginal = go;
+    go = function (i) { goOriginal(i); LMS.section(label(i)); };
+    // record the section that is already open on load
+    LMS.section(label(typeof current !== "undefined" ? current : 0));
+  })();
+</script>
 </body>
 </html>
